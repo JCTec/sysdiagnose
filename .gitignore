@@ -1,0 +1,5 @@
+.DS_Store
+*.tar.gz
+sysdiagnose_*/
+FINDINGS.md
+HOW-THE-ANALYSIS-WAS-DONE.md
