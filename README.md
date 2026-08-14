@@ -1,6 +1,6 @@
 # How to Check Your iPhone or iPad for Problems
 
-### Using Apple’s `sysdiagnose` + AI
+### Using Apple’s `sysdiagnose` + a local AI
 
 A **sysdiagnose** is Apple’s official diagnostic dump. It is a snapshot of processes, network config, crashes, configuration profiles, Wi-Fi, and more.
 
@@ -9,10 +9,16 @@ It is **not** a full forensic image. It is the best free, on-device snapshot you
 This guide walks you through three things:
 
 1. **Generate** the sysdiagnose on the iPhone or iPad
-2. **Export** it to a computer and unpack it
-3. **Analyze** it with [Grok](https://grok.com) (or any strong LLM) using a careful forensic prompt
+2. **Export** it to a Mac and unpack it
+3. **Analyze** it **on that Mac** with any strong AI that can open folders (Grok, ChatGPT, Claude, a local model, or similar)
 
+> Do this on your computer. Do **not** upload the `.tar.gz` to a website. The file is usually 300–800 MB+, which is too big for a browser chat, and the prompt needs to open individual files inside the folder.
+>
 > Treat the AI report as a strong second opinion, not absolute proof.
+
+A calmer, Mac-user version of this guide is on Medium:
+
+**[Your iPhone Feels Weird. Here’s a Calm Way to Check It.](https://medium.com/@juantvz50/your-iphone-feels-weird-heres-a-calm-way-to-checkit-48f3c7887e63)**
 
 ---
 
@@ -24,7 +30,9 @@ This guide walks you through three things:
   - [Method B — AssistiveTouch](#method-b--assistivetouch-recommended-if-buttons-are-annoying)
 - [2. Find and export the file](#2-find-and-export-the-file)
 - [3. Unpack it on your computer](#3-unpack-it-on-your-computer)
-- [4. Analyze it with Grok](#4-analyze-it-with-grok-or-any-strong-llm)
+- [4. Analyze it locally](#4-analyze-it-locally)
+  - [Why not the website?](#why-not-the-website)
+  - [What “local” means here](#what-local-means-here)
 - [What the prompt is careful about](#what-the-prompt-is-careful-about)
 - [Tips for better results](#tips-for-better-results)
 - [Privacy](#privacy)
@@ -94,13 +102,15 @@ Wait the full **5–10 minutes**.
 | **Save to Files** | Then move it later by cable or cloud |
 | **Send it to yourself** | Mail, Messages, or another share target if needed |
 
-The file is a large `.tar.gz` — often **300–800 MB+**.
+The file is a large `.tar.gz` — often **300–800 MB+**. Keep it on the Mac. Do not try to attach it to a web chat.
 
 ---
 
 ## 3. Unpack it on your computer
 
-On a Mac or Linux:
+On a Mac, **double-click** the file in Finder. Archive Utility will unpack it.
+
+On a Mac or Linux you can also run:
 
 ```bash
 tar -xzf sysdiagnose_YYYY.MM.DD_....tar.gz
@@ -117,15 +127,38 @@ You will get a folder that contains things like:
 | `crashes_and_spins/` | Crashes, jetsam, analytics reports |
 | `errors/` / `summaries/` | Collector gaps and indexes |
 
-That folder is what we analyze.
+That folder is what we analyze. You give the AI the **path to this folder**, not the compressed file.
 
 ---
 
-## 4. Analyze it with Grok (or any strong LLM)
+## 4. Analyze it locally
 
-Use this exact workflow:
+### Why not the website?
 
-1. Open a **new chat** with [Grok](https://grok.com) (or another strong model that can read your filesystem).
+Browser chats (Grok on the web, ChatGPT in Safari, Claude.ai, and the rest) are the **wrong tool** for this:
+
+- The archive is far larger than a typical upload limit (~50–150 MB).
+- Even if an upload worked, the model cannot walk the folder, open only the useful files, write `FINDINGS.md` back into it, or cross-check this Mac’s Wi-Fi and DNS.
+- Most of the archive is noise. Sending the whole thing is a privacy mistake.
+
+Leave the file on disk. Point a **desktop or terminal AI** at the unpacked folder.
+
+### What “local” means here
+
+Use any app **on your Mac** that can open files by path. The brand does not matter.
+
+| Fine | Not fine |
+| --- | --- |
+| Grok desktop / CLI / this kind of coding chat | grok.com file upload |
+| ChatGPT desktop app, Codex, Cursor | chatgpt.com attach-the-tar |
+| Claude Desktop, Claude Code | claude.ai attach-the-tar |
+| A fully offline model (Ollama + Llama / Qwen / etc.) | Any browser tab that asks you to upload the `.tar.gz` |
+
+A fully offline model is the most private option. A desktop app that talks to a cloud model still works for the method — the archive stays on your Mac, and the model should only open the small files it needs. That is different from uploading the whole dump.
+
+### Workflow
+
+1. Open a **new** chat in one of the Mac apps above.
 2. Paste the **entire** prompt from [`PROMPT-FOR-OTHER-LLM.md`](PROMPT-FOR-OTHER-LLM.md).
 3. The model will greet you and ask only three questions:
 
@@ -136,7 +169,9 @@ Use this exact workflow:
    | 3 | **Are we on the same Wi-Fi right now?** | Yes or no |
 
 4. Answer those three questions.
-5. The model will read the files and produce a calm, structured report.
+5. The model will read the files on disk and produce a calm, structured report.
+
+To copy the folder path on a Mac: click the unpacked folder once in Finder, hold **Option**, right-click, choose **Copy as Pathname**.
 
 When it finishes, it writes two files **inside the sysdiagnose folder**:
 
@@ -161,10 +196,10 @@ The prompt in this repo is written so the model:
 
 ## Tips for better results
 
-- Prefer analyzing on the **same computer / same Wi-Fi** if you can. The prompt can then cross-check DNS and reachability.
-- If the dump is huge, still give the path. A model with filesystem access should only open what it needs.
+- Run the chat **on the same Mac, on the same Wi-Fi**, if you can. The prompt can then cross-check DNS and reachability.
+- If the dump is huge, still give the path. A model with folder access should only open what it needs.
 - Always treat the AI report as a **strong second opinion**, not absolute proof.
-- For maximum privacy, run the same prompt with a **local** model (Ollama + Llama 3.1 / Qwen / etc.).
+- For maximum privacy, use a **fully local** model (Ollama + Llama 3.1 / Qwen / etc.). Same prompt, nothing leaves the machine.
 
 ---
 
@@ -174,7 +209,8 @@ A sysdiagnose can contain network names, crash snippets, installed-app inventory
 
 - Keep the `.tar.gz` and the unpacked folder on a machine you trust.
 - Do not publish the dump.
-- If you use a cloud model, you are sending whatever that model reads to that service. A local model never leaves your computer.
+- Do not upload the archive to a website.
+- A desktop app that uses a cloud model may still send the **files it opens** to that service. A fully local model never does.
 
 ---
 
@@ -184,7 +220,9 @@ Copy everything below the first line in:
 
 **[PROMPT-FOR-OTHER-LLM.md](PROMPT-FOR-OTHER-LLM.md)**
 
-Give the model filesystem access (or a path it can open). Do **not** hardcode a folder. The model must greet first and ask before it opens files.
+Give the model folder access on your computer (or a path it can open). Do **not** hardcode a folder. The model must greet first and ask before it opens files.
+
+The prompt is brand-agnostic. Paste it into Grok, ChatGPT, Claude, Cursor, Ollama, or anything else that can read a path.
 
 ---
 
